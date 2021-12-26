@@ -1,7 +1,9 @@
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow } from '@mui/material';
+import { Button, CircularProgress, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow } from '@mui/material';
+import { Box } from '@mui/system';
 import React, { useEffect, useState } from 'react';
+import { useHistory } from 'react-router-dom';
 
-export interface initPost {
+export interface InitPost {
     title: string;
     url: string;
     created_at: Date;
@@ -32,24 +34,30 @@ interface Column {
   ];  
 
 const Home: React.FC = () => {
+    const history = useHistory();
+    //pagination
     const [page, setPage] = useState<number>(0);
-    const [post, setPost] = useState<initPost[]>([]);
     const [totalElements, setTotalElements] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(false);
+    const [posts, setPosts] = useState<InitPost[]>([]);
+    const [myInterval, setMyInterval] = useState<any>(null);
 
     useEffect(()=>{
-        setInterval(()=> {
-            getPost();
-
+        getPost(0);
+       const interval = setInterval(()=> {
+            getPost(0);
         }, 10000);
+        setMyInterval(interval);
+
+        return () => clearInterval(myInterval);
     },[])
 
-    const getPost = async () => {
+    const getPost = async (pageNumber: number) => {
         try{
             setLoading(true);
-            const res = await fetch('https://hn.algolia.com/api/v1/search_by_date?tags=story&page=0')
+            const res = await fetch(`https://hn.algolia.com/api/v1/search_by_date?tags=story&page=${pageNumber}`)
             const data = await res.json();
-            setPost(data.hits);
+            setPosts(data.hits);
             setTotalElements(data.nbHits);
             setLoading(false);
         }catch(error) {
@@ -58,46 +66,72 @@ const Home: React.FC = () => {
         }
     }
 
-    const handleChangePage = () => {
-        
+    const handleChangePage = async (event: unknown, newPage: number) => {
+        if(newPage === 0){
+            const interval = setInterval(()=> {
+                getPost(0);
+            }, 10000);
+            setMyInterval(interval);
+        } else {
+            clearInterval(myInterval)
+        }
+        setPage(newPage);
+        await getPost(newPage);
+    }
+
+    const getDetails = (post: InitPost) => {
+        history.push({
+            pathname: '/details',
+            state: post
+        })
     }
     return (
         <div>
           <Paper sx={{ width: '100%', overflow: 'hidden' }}>
       <TableContainer sx={{ maxHeight: 440 }}>
-        <Table stickyHeader aria-label="sticky table">
-          <TableHead>
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell
-                  key={column.id}
-                  align={column.align}
-                  style={{ minWidth: column.minWidth }}
-                >
-                  {column.label}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {post.map((row, index) => {
-                return (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={index}>
-                    {columns.map((column) => {
-                      const value = row[column.id];
-                      return (
-                        <TableCell key={column.id} align={column.align}>
-                          {column.format && typeof value === 'number'
-                            ? column.format(value)
-                            : value}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                );
-              })}
-          </TableBody>
-        </Table>
+        {
+            loading? <Box><CircularProgress /></Box> : <Table stickyHeader aria-label="sticky table">
+            <TableHead>
+              <TableRow>
+                {columns.map((column) => (
+                  <TableCell
+                    key={column.id}
+                    align={column.align}
+                    style={{ minWidth: column.minWidth }}
+                  >
+                    {column.label}
+                  </TableCell>
+                ))}
+                <TableCell/>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {posts.map((row, index) => {
+                  return (
+                    <TableRow key={index}>
+                      {columns.map((column) => {
+                        const value = row[column.id];
+                        return (
+                          <TableCell key={column.id}>
+                            {value}
+                          </TableCell>
+                        );
+                      })}
+                      <TableCell>
+                          <Button 
+                          size="small"
+                          variant="contained"
+                          onClick={()=> getDetails(row)}
+                          >
+                              Details
+                          </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+            </TableBody>
+          </Table>
+        }
       </TableContainer>
       <TablePagination
         rowsPerPageOptions={[]}
