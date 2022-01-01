@@ -101,13 +101,10 @@ const Home: React.FC = () => {
   };
 
   const getDetails = (post: InitPost) => {
-    history.push({
-      pathname: "/details",
-      state: post,
-    });
+    history.push("/details", post);
   };
   return (
-    <div>
+    <div data-testid="home">
       <Paper sx={{ width: "100%", overflow: "hidden" }}>
         <TableContainer sx={{ maxHeight: 440 }}>
           {loading ? (

@@ -6,7 +6,7 @@ const Details = lazy(() => import("./components/Details"));
 
 const App: React.FC = () => {
   return (
-    <div className="App">
+    <div className="App" data-testid="app">
       <Suspense fallback={<p>Loading...</p>}>
         <Router>
           <Switch>

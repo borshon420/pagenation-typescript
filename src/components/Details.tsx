@@ -1,13 +1,12 @@
 import React from "react";
-import { RouteComponentProps } from "react-router-dom";
-import { InitPost } from "./Home";
+import { useLocation } from "react-router-dom";
 
-const Details: React.FC<RouteComponentProps> = (
-  props: RouteComponentProps<{}, any, InitPost | any>
-) => {
-  const post = props.location.state;
+const Details: React.FC = ( ) => {
+  
+  const {state} = useLocation();
+  const post = state
   return (
-    <div>
+    <div data-testid="details">
       <pre>{JSON.stringify(post, null, 2)}</pre>
     </div>
   );
