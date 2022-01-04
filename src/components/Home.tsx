@@ -133,17 +133,8 @@ const Home: React.FC = () => {
                     <TableRow key={index}>
                       {columns.map((column) => {
                         const value = row[column.id];
-                        return <TableCell key={column.id}>{value}</TableCell>;
+                        return <TableCell onClick={() => getDetails(row)} key={column.id}>{value}</TableCell>;
                       })}
-                      <TableCell>
-                        <Button
-                          size="small"
-                          variant="contained"
-                          onClick={() => getDetails(row)}
-                        >
-                          Details
-                        </Button>
-                      </TableCell>
                     </TableRow>
                   );
                 })}
